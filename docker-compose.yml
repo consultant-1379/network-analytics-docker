@@ -1,0 +1,32 @@
+# ===============================================================
+# This is the Docker Compose file for running NetAn on Docker.
+# ===============================================================
+version: "2.4"
+
+services:
+
+  db:
+    image: netan/database:1.0.0
+    stdin_open: true
+    tty: true
+    hostname: spotfiredb
+    ports:
+      - "1433:1433"
+
+  svc:
+    image: netan/server:1.0.0
+    stdin_open: true
+    tty: true
+    hostname: spotfire
+    mem_limit: 4G
+    ports:
+      - "80:80"
+    depends_on:
+      - db
+
+  wp:
+    image: netan/web-player:1.0.0
+    stdin_open: true
+    tty: true
+    hostname: spotfirewp
+    mem_limit: 3G

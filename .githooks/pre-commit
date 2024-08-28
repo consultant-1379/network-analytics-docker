@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#  COPYRIGHT Ericsson 2019
+#  The copyright to the computer program(s) herein is the property of
+#  Ericsson Inc. The programs may be used and/or copied only with written
+#  permission from Ericsson Inc. or in accordance with the terms and
+#  conditions stipulated in the agreement/contract under which the
+#  program(s) have been supplied.
+
+
+export VERSION_FILE="image_versions.env"
+
+# Checks if the directory has changed since the last commit.
+function dir_changed {
+    git diff --name-only | grep $1 | wc -l
+}
+
+# Checks if the image version has changed in the versions file.
+function image_version_changed {
+    git diff ${VERSION_FILE} | grep $1 | wc -l
+}
+
+svc_dir_changed=`dir_changed spotfire-svc`
+db_dir_changed=`dir_changed spotfire-db`
+wp_dir_changed=`dir_changed spotfire-wp`
+
+svc_version_changed=`image_version_changed "+SVC_VERSION"`
+db_version_changed=`image_version_changed "+DB_VERSION"`
+wp_version_changed=`image_version_changed "+WP_VERSION"`
+
+echo "svc changed (dir/ver): ${svc_dir_changed}/${svc_version_changed}"
+echo "db  changed (dir/ver): ${db_dir_changed}/${db_version_changed}"
+echo "wp  changed (dir/ver): ${wp_dir_changed}/${wp_version_changed}"
+
+EXIT_STATUS=0
+
+if [[ svc_dir_changed -gt 0 && svc_version_changed -eq 0 ]]; then
+ echo "The spotfire-svc directory has changed. Please update the SVC_VERSION in the file ${VERSION_FILE}."
+ let EXIT_STATUS++
+fi
+
+if [[ wp_dir_changed -gt 0 && wp_version_changed -eq 0 ]]; then
+ echo "The spotfire-wp directory has changed. Please update the WP_VERSION in the file ${VERSION_FILE}."
+ let EXIT_STATUS++
+fi
+
+if [[ db_dir_changed -gt 0 && db_version_changed -eq 0 ]]; then
+ echo "The spotfire-db directory has changed. Please update the DB_VERSION in the file ${VERSION_FILE}."
+ let EXIT_STATUS++
+fi
+
+exit ${EXIT_STATUS}
